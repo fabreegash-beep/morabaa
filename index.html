@@ -2,365 +2,357 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>النقاط والصناديق - نسخة التحدي السريع</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dots & Boxes Pro 🏆</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        :root {
+            --dark-bg: #0f172a;
+            --pink: #ff85a2;
+            --blue: #38bdf8;
+            --accent: #6366f1;
+            --player-color: transparent;
         }
 
-        #lobby {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 450px;
-            border: 1px solid rgba(255,255,255,0.2);
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: var(--dark-bg);
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+            min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center;
+            color: white; overflow: hidden;
         }
 
-        #lobby h2 {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            font-size: 1.8rem;
-            margin-bottom: 25px;
-            font-weight: bold;
+        #lobby { 
+            background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 30px; 
+            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+            text-align: center; width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
-        .color-selector { margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 20px; }
-        .color-options { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .color-btn { width: 50px; height: 50px; border-radius: 50%; cursor: pointer; transition: all 0.3s; border: 3px solid transparent; }
-        .color-btn.selected { border-color: #2c3e50; transform: scale(1.1); }
-
-        .room-code-display {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px;
-            border-radius: 15px;
-            margin: 15px 0;
-            font-size: 1.5rem;
-            font-weight: bold;
-            letter-spacing: 5px;
-            cursor: pointer;
+        .input-box { 
+            background: #0f172a; border: 2px solid #334155; border-radius: 15px;
+            padding: 15px; color: white; width: 100%; box-sizing: border-box;
+            font-size: 1.5rem; text-align: center; margin-bottom: 20px; outline: none;
         }
 
-        #lobby input { width: 100%; padding: 14px 18px; margin: 12px 0; border: 2px solid #e0e0e0; border-radius: 50px; text-align: center; }
-        button { flex: 1; padding: 12px 20px; cursor: pointer; border: none; border-radius: 50px; font-weight: bold; transition: all 0.3s; }
-        button.primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        button.secondary { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+        .color-palette { display: flex; justify-content: center; gap: 10px; margin: 15px 0; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 20px; }
+        .color-dot { 
+            width: 40px; height: 40px; border-radius: 12px; cursor: pointer; 
+            border: 2px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .color-dot.selected { border-color: white; transform: scale(1.1); }
 
-        #game-area { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 900px; }
-        #status {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 30px;
-            border-radius: 60px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            text-align: center;
-            min-width: 300px;
+        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1.1rem; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
+
+        #game-area { display: none; flex-direction: column; align-items: center; }
+
+        #board-container {
+            padding: 10px; border-radius: 25px;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 4px solid transparent;
         }
 
-        #board { background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 30px; display: inline-grid; }
-        .dot { width: 14px; height: 14px; background: #2c3e50; border-radius: 50%; z-index: 3; }
-        .line { cursor: pointer; z-index: 2; transition: all 0.2s; border-radius: 4px; position: relative; }
-        .line.horizontal { height: 8px; width: 60px; }
-        .line.vertical { width: 8px; height: 60px; }
-        .line.taken { cursor: default; }
-        .box { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; border-radius: 12px; }
+        #board-container.my-turn {
+            border-color: var(--player-color);
+            box-shadow: 0 0 30px var(--player-color), inset 0 0 15px var(--player-color);
+            animation: borderPulse 2s infinite;
+        }
 
-        .info-panel { margin-top: 25px; background: rgba(255, 255, 255, 0.9); padding: 12px 25px; border-radius: 50px; display: flex; gap: 30px; font-weight: bold; }
-        .exit-btn { position: fixed; top: 20px; left: 20px; background: white; padding: 10px 20px; border-radius: 50px; cursor: pointer; color: #e74c3c; display: none; z-index: 100; border: none; font-weight: bold; }
+        @keyframes borderPulse {
+            0% { opacity: 0.8; } 50% { opacity: 1; filter: brightness(1.2); } 100% { opacity: 0.8; }
+        }
+
+        .status-header {
+            background: rgba(30, 41, 59, 0.9); padding: 12px 20px; border-radius: 20px;
+            margin-bottom: 15px; width: 100%; display: flex; justify-content: space-between; align-items: center;
+            min-width: 350px;
+        }
+
+        #timer { font-size: 1.1rem; background: #ef4444; padding: 4px 10px; border-radius: 8px; font-weight: bold; }
+
+        .score-board { display: flex; gap: 15px; margin-bottom: 10px; }
+        .player-score { padding: 5px 15px; border-radius: 12px; border: 2px solid transparent; font-weight: bold; background: rgba(255,255,255,0.05); }
+
+        #board { display: grid; background: rgba(15, 23, 42, 0.5); padding: 15px; border-radius: 15px; }
         
-        .winner-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .winner-card { background: white; padding: 40px; border-radius: 30px; text-align: center; }
-        
-        /* شريط الوقت */
-        #timer-bar { width: 100%; height: 5px; background: #eee; margin-top: 10px; border-radius: 5px; overflow: hidden; }
-        #timer-progress { height: 100%; background: #e74c3c; width: 100%; transition: width 1s linear; }
+        .dot { width: 10px; height: 10px; background: #475569; border-radius: 50%; }
+        .line { background: #1e293b; cursor: pointer; transition: 0.2s; border-radius: 5px; }
+        .line.horizontal { height: 10px; width: 50px; }
+        .line.vertical { width: 10px; height: 50px; }
+        .line.taken { box-shadow: 0 0 8px currentColor; }
 
-        @media (max-width: 700px) {
-            .line.horizontal { width: 40px; }
-            .line.vertical { height: 40px; }
-            .box { width: 40px; height: 40px; font-size: 1.2rem; }
+        .box { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+
+        #waiting-screen {
+            background: rgba(30, 41, 59, 0.95); padding: 30px; border-radius: 25px;
+            text-align: center; border: 2px dashed var(--blue); margin-top: 20px;
         }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <button class="exit-btn" id="exitBtn" onclick="exitGame()">← مغادرة</button>
-
     <div id="lobby">
-        <h2>🎮 النقاط والصناديق</h2>
-        <div class="color-selector">
-            <p>🎨 اختر لونك:</p>
-            <div class="color-options">
-                <div class="color-btn" data-color="red" style="background: #e74c3c;" onclick="selectColor('red')"></div>
-                <div class="color-btn" data-color="blue" style="background: #3498db;" onclick="selectColor('blue')"></div>
-                <div class="color-btn" data-color="pink" style="background: #e91e63;" onclick="selectColor('pink')"></div>
-                <div class="color-btn" data-color="yellow" style="background: #f1c40f;" onclick="selectColor('yellow')"></div>
-            </div>
+        <h1 style="margin-top:0">Dots & Boxes 🎮</h1>
+        <div class="color-palette">
+            <div class="color-dot selected" style="background: var(--pink)" data-color="#ff85a2" data-emoji="💖">💖</div>
+            <div class="color-dot" style="background: var(--blue)" data-color="#38bdf8" data-emoji="💪">💪</div>
+            <div class="color-dot" style="background: #4ade80" data-color="#4ade80" data-emoji="🌟">🌟</div>
+            <div class="color-dot" style="background: #fbbf24" data-color="#fbbf24" data-emoji="🔥">🔥</div>
+            <div class="color-dot" style="background: #a855f7" data-color="#a855f7" data-emoji="🔮">🔮</div>
         </div>
-        <div id="roomCodeContainer" style="display: none;">
-            <div class="room-code-display" id="roomCodeDisplay" onclick="copyRoomCode()">----</div>
-        </div>
-        <input type="text" id="roomInput" placeholder="📝 رمز الغرفة">
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="primary" onclick="createRoom()">إنشاء غرفة</button>
-            <button class="secondary" onclick="joinRoom()">انضمام</button>
-        </div>
+        <button class="btn btn-primary" onclick="joinRoom('create')">🆕 إنشاء غرفة جديدة</button>
+        <hr style="margin: 20px 0; opacity: 0.1;">
+        <input type="text" id="roomInput" class="input-box" placeholder="أدخل كود الغرفة">
+        <button class="btn btn-secondary" onclick="joinRoom('join')">🔗 انضمام سريع</button>
     </div>
 
     <div id="game-area">
-        <div id="status">جاري التحميل...</div>
-        <div id="timer-bar"><div id="timer-progress"></div></div>
-        <div id="board"></div>
-        <div class="info-panel">
-            <span>🏠 <b id="roomNameDisplay">--</b></span>
-            <span>🎭 <b id="playerSide">--</b></span>
-            <span id="scoreDisplay">📊 0 - 0</span>
+        <div class="score-board">
+            <div id="p1-score" class="player-score">P1: 0</div>
+            <div id="p2-score" class="player-score">P2: 0</div>
+        </div>
+
+        <div class="status-header">
+            <div id="turnTxt">بانتظار الخصم...</div>
+            <div id="timer">8s</div>
+        </div>
+
+        <div id="board-container">
+            <div id="board"></div>
+            
+            <div id="waiting-screen" class="hidden">
+                <h3>أرسل الكود لصديقك 👥</h3>
+                <div id="displayID" style="font-size: 2.5rem; color: var(--blue); margin: 15px 0; letter-spacing: 5px; font-weight: bold;">000000</div>
+                <button class="btn btn-primary" onclick="copyRoom()">📋 نسخ كود الغرفة</button>
+                <p style="opacity: 0.6; font-size: 0.9rem; margin-top: 15px;">ستبدأ اللعبة تلقائياً عند دخوله...</p>
+            </div>
+        </div>
+
+        <div class="color-palette" style="margin-top:20px;">
+            <div class="color-dot" style="background: var(--pink)" data-color="#ff85a2" data-emoji="💖"></div>
+            <div class="color-dot" style="background: var(--blue)" data-color="#38bdf8" data-emoji="💪"></div>
+            <div class="color-dot" style="background: #4ade80" data-color="#4ade80" data-emoji="🌟"></div>
+            <div class="color-dot" style="background: #fbbf24" data-color="#fbbf24" data-emoji="🔥"></div>
+            <div class="color-dot" style="background: #a855f7" data-color="#a855f7" data-emoji="🔮"></div>
         </div>
     </div>
 
+    <audio id="soundMove" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+    <audio id="soundScore" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+
 <script>
-    // إعدادات Firebase
     const firebaseConfig = {
-        apiKey: "AIzaSyBjHyON3NjKz2yBxCqwgLftd2trh03HYQc",
-        authDomain: "arabic-game-onlin.firebaseapp.com",
-        databaseURL: "https://arabic-game-onlin-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "arabic-game-onlin",
-        storageBucket: "arabic-game-onlin.firebasestorage.app",
-        messagingSenderId: "406939044821",
-        appId: "1:406939044821:web:daa86a2fa46483363f8b5c"
+      apiKey: "AIzaSyBjHyON3NjKz2yBxCqwgLftd2trh03HYQc",
+      authDomain: "arabic-game-onlin.firebaseapp.com",
+      databaseURL: "https://arabic-game-onlin-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "arabic-game-onlin",
+      storageBucket: "arabic-game-onlin.firebasestorage.app",
+      messagingSenderId: "406939044821",
+      appId: "1:406939044821:web:daa86a2fa46483363f8b5c"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let roomID = "";
-    let myRole = null; 
-    let currentTurn = 1;
-    let p1Score = 0, p2Score = 0;
-    let gameActive = true;
-    let myColor = "red";
-    let timeLeft = 8;
-    let timerInterval = null;
-    let bonusTurns = 0;
-    const ROWS = 5, COLS = 5;
+    let roomID, myRole, currentTurn, penaltyTurns = 0;
+    let myColor = "#ff85a2", myEmoji = "💖";
+    let playersData = {};
 
-    const colorStyles = {
-        red: { bg: "rgba(231, 76, 60, 0.2)", text: "#e74c3c", line: "linear-gradient(90deg, #e74c3c, #c0392b)" },
-        blue: { bg: "rgba(52, 152, 219, 0.2)", text: "#3498db", line: "linear-gradient(90deg, #3498db, #2980b9)" },
-        pink: { bg: "rgba(233, 30, 99, 0.2)", text: "#e91e63", line: "linear-gradient(90deg, #e91e63, #c2185b)" },
-        yellow: { bg: "rgba(241, 196, 15, 0.2)", text: "#f1c40f", line: "linear-gradient(90deg, #f1c40f, #f39c12)" }
-    };
-
-    function selectColor(color) {
-        myColor = color;
-        document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
-        document.querySelector(`.color-btn[data-color="${color}"]`).classList.add('selected');
-    }
-
-    async function createRoom() {
-        roomID = Math.random().toString(36).substring(2, 8).toUpperCase();
-        myRole = 1;
-        await db.ref('rooms/' + roomID).set({
-            turn: 1, p1: true, p2: false, p1Score: 0, p2Score: 0,
-            p1Color: myColor, p2Color: "blue", gameActive: true, bonusTurns: 0
+    document.querySelectorAll('.color-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+            dot.classList.add('selected');
+            myColor = dot.dataset.color;
+            myEmoji = dot.dataset.emoji;
+            if(roomID && myRole) {
+                db.ref('rooms/' + roomID).update({ [`c${myRole}`]: myColor, [`e${myRole}`]: myEmoji });
+            }
         });
-        document.getElementById('roomCodeContainer').style.display = 'block';
-        document.getElementById('roomCodeDisplay').innerText = roomID;
-        startUI();
-        listenToGame();
+    });
+
+    async function joinRoom(mode) {
+        if(mode === 'create') {
+            roomID = Math.floor(100000 + Math.random() * 900000).toString();
+            myRole = 1;
+            await db.ref('rooms/' + roomID).set({ 
+                turn: 1, p1:true, p2:false, 
+                c1:myColor, e1:myEmoji, s1:0,
+                c2:"#38bdf8", e2:"💪", s2:0,
+                lastMove: "", timeLeft: 8, penalty: 0
+            });
+            document.getElementById('waiting-screen').classList.remove('hidden');
+            document.getElementById('board').classList.add('hidden');
+            document.getElementById('displayID').innerText = roomID;
+        } else {
+            roomID = document.getElementById('roomInput').value.trim();
+            if(!roomID) return alert("أدخل كود الغرفة");
+            const snap = await db.ref('rooms/' + roomID).once('value');
+            if(!snap.val()) return alert("الغرفة غير موجودة");
+            myRole = 2;
+            await db.ref('rooms/' + roomID).update({ p2:true, c2:myColor, e2:myEmoji });
+        }
+        startGame();
     }
 
-    async function joinRoom() {
-        roomID = document.getElementById('roomInput').value.trim().toUpperCase();
-        const snap = await db.ref('rooms/' + roomID).once('value');
-        if(!snap.exists()) return alert("الغرفة غير موجودة");
-        myRole = 2;
-        await db.ref('rooms/' + roomID).update({ p2: true, p2Color: myColor });
-        startUI();
-        listenToGame();
-    }
-
-    function startUI() {
+    function startGame() {
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('game-area').style.display = 'flex';
-        document.getElementById('exitBtn').style.display = 'block';
-        document.getElementById('roomNameDisplay').innerText = roomID;
-        document.getElementById('playerSide').innerText = `لاعب ${myRole}`;
-        createBoard();
-    }
-
-    function createBoard() {
         const board = document.getElementById('board');
-        board.style.gridTemplateColumns = `repeat(${COLS}, 12px 60px) 12px`;
-        board.innerHTML = '';
-        for (let r = 0; r <= ROWS; r++) {
-            for (let c = 0; c <= COLS; c++) {
-                const dot = document.createElement('div'); dot.className = 'dot'; board.appendChild(dot);
-                if (c < COLS) {
-                    const line = document.createElement('div'); line.className = 'line horizontal';
-                    line.id = `line-h-${r}-${c}`; line.onclick = () => makeMove(r, c, 'h');
-                    board.appendChild(line);
-                }
+        const SIZE = 5;
+        board.style.gridTemplateColumns = `repeat(${SIZE}, 10px 50px) 10px`;
+        board.innerHTML = "";
+        for (let r = 0; r <= SIZE; r++) {
+            for (let c = 0; c <= SIZE; c++) {
+                const dot = document.createElement('div'); dot.className='dot'; board.appendChild(dot);
+                if(c < SIZE) addLine(r, c, 'h', board);
             }
-            if (r < ROWS) {
-                for (let c = 0; c <= COLS; c++) {
-                    const line = document.createElement('div'); line.className = 'line vertical';
-                    line.id = `line-v-${r}-${c}`; line.onclick = () => makeMove(r, c, 'v');
-                    board.appendChild(line);
-                    if (c < COLS) {
-                        const box = document.createElement('div'); box.className = 'box';
+            if(r < SIZE) {
+                for (let c = 0; c <= SIZE; c++) {
+                    addLine(r, c, 'v', board);
+                    if(c < SIZE) {
+                        const box = document.createElement('div'); box.className='box';
                         box.id = `box-${r}-${c}`; board.appendChild(box);
                     }
                 }
             }
         }
+        listen();
+        if(myRole === 1) startMasterTimer();
     }
 
-    function startTimer() {
-        clearInterval(timerInterval);
-        timeLeft = 8;
-        const bar = document.getElementById('timer-progress');
-        bar.style.width = "100%";
-        
-        timerInterval = setInterval(async () => {
-            timeLeft--;
-            bar.style.width = (timeLeft / 8 * 100) + "%";
-            
-            if(currentTurn === myRole) {
-                document.getElementById('status').innerText = `⏳ دورك! باقي ${timeLeft} ثوانٍ`;
+    function addLine(r, c, type, container) {
+        const l = document.createElement('div');
+        l.className = `line ${type==='h'?'horizontal':'vertical'}`;
+        l.id = `line-${type}-${r}-${c}`;
+        l.onclick = () => {
+            if(currentTurn === myRole && !l.classList.contains('taken')) {
+                db.ref(`rooms/${roomID}`).update({
+                    lastMove: { r, c, type, p: myRole, t: Date.now() },
+                    timeLeft: 8
+                });
+                document.getElementById('soundMove').play();
             }
+        };
+        container.appendChild(l);
+    }
 
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                if (currentTurn === myRole) {
-                    // إذا انتهى الوقت ولم يلعب، ينتقل الدور للخصم مع ميزة دورين
-                    const nextTurn = myRole === 1 ? 2 : 1;
-                    await db.ref(`rooms/${roomID}`).update({
-                        turn: nextTurn,
-                        bonusTurns: 1 // اللاعب القادم لديه دور إضافي واحد (المجموع دورين)
-                    });
-                }
+    function startMasterTimer() {
+        setInterval(async () => {
+            const snap = await db.ref(`rooms/${roomID}`).once('value');
+            const d = snap.val();
+            if(!d || !d.p2) return;
+            let newTime = d.timeLeft - 1;
+            if(newTime <= 0) {
+                // تفعيل العقوبة (الدورين): تعيين دور الخصم وتحديد العقوبة بـ 2
+                db.ref(`rooms/${roomID}`).update({ 
+                    turn: d.turn === 1 ? 2 : 1, 
+                    timeLeft: 8,
+                    penalty: 2 
+                });
+            } else {
+                db.ref(`rooms/${roomID}/timeLeft`).set(newTime);
             }
         }, 1000);
     }
 
-    function makeMove(r, c, type) {
-        if(!gameActive || currentTurn !== myRole) return;
-        const line = document.getElementById(`line-${type}-${r}-${c}`);
-        if(line.classList.contains('taken')) return;
+    function listen() {
+        db.ref(`rooms/${roomID}`).on('value', snap => {
+            const d = snap.val();
+            if(!d) return;
+            currentTurn = d.turn;
+            penaltyTurns = d.penalty || 0;
+            playersData = { 1: {c: d.c1, e: d.e1, s: d.s1}, 2: {c: d.c2, e: d.e2, s: d.s2} };
 
-        db.ref(`rooms/${roomID}`).update({
-            lastMove: { r, c, type, player: myRole, timestamp: Date.now() }
-        });
-    }
-
-    function listenToGame() {
-        db.ref(`rooms/${roomID}`).on('value', snapshot => {
-            const data = snapshot.val();
-            if(!data) return;
-
-            currentTurn = data.turn;
-            bonusTurns = data.bonusTurns || 0;
-            p1Score = data.p1Score || 0;
-            p2Score = data.p2Score || 0;
-            gameActive = data.gameActive !== false;
-            updateColorsInCSS(data.p1Color, data.p2Color);
-            document.getElementById('scoreDisplay').innerText = `📊 ${p1Score} - ${p2Score}`;
-
-            if(data.lastMove) {
-                renderMove(data.lastMove.r, data.lastMove.c, data.lastMove.type, data.lastMove.player, data.p1Color, data.p2Color);
-                if(data.lastMove.player === myRole) db.ref(`rooms/${roomID}/lastMove`).set(null);
+            if(d.p2) {
+                document.getElementById('waiting-screen').classList.add('hidden');
+                document.getElementById('board').classList.remove('hidden');
             }
 
-            if(gameActive) {
-                startTimer();
-                if(currentTurn !== myRole) {
-                    document.getElementById('status').innerText = "⏳ انتظر الخصم...";
-                }
+            const container = document.getElementById('board-container');
+            if(currentTurn === myRole && d.p2) {
+                document.documentElement.style.setProperty('--player-color', myColor);
+                container.classList.add('my-turn');
             } else {
-                clearInterval(timerInterval);
-                document.getElementById('status').innerText = "انتهت اللعبة!";
+                container.classList.remove('my-turn');
+            }
+
+            const p1Sc = document.getElementById('p1-score');
+            const p2Sc = document.getElementById('p2-score');
+            p1Sc.innerHTML = `${d.e1} P1: ${d.s1}`;
+            p1Sc.style.borderColor = (currentTurn === 1) ? d.c1 : 'transparent';
+            p1Sc.style.color = d.c1;
+            p2Sc.innerHTML = `${d.e2} P2: ${d.s2}`;
+            p2Sc.style.borderColor = (currentTurn === 2) ? d.c2 : 'transparent';
+            p2Sc.style.color = d.c2;
+
+            document.getElementById('timer').innerText = d.timeLeft + "s";
+
+            if(d.lastMove) {
+                const m = d.lastMove;
+                const line = document.getElementById(`line-${m.type}-${m.r}-${m.c}`);
+                if(line && !line.classList.contains('taken')) {
+                    line.style.color = playersData[m.p].c;
+                    line.style.background = 'currentColor';
+                    line.classList.add('taken');
+                    check(m.r, m.c, m.type, m.p);
+                }
+            }
+
+            const txt = document.getElementById('turnTxt');
+            if(!d.p2) txt.innerText = "⏳ بانتظار الخصم...";
+            else {
+                txt.innerText = (currentTurn === myRole) ? "🟢 دورك الآن" : "🔴 دور الخصم";
+                txt.style.color = playersData[currentTurn].c;
             }
         });
     }
 
-    function renderMove(r, c, type, player, p1Color, p2Color) {
-        const line = document.getElementById(`line-${type}-${r}-${c}`);
-        if(!line || line.classList.contains('taken')) return;
-
-        line.classList.add('taken', `p${player}`);
-        const scored = checkBoxes(r, c, type, player, p1Color, p2Color);
-
-        // منطق تبديل الأدوار (فقط اللاعب 1 يدير المنطق لتجنب التكرار)
-        if(myRole === 1 && gameActive) {
-            if(!scored) {
-                if(bonusTurns > 0) {
-                    db.ref(`rooms/${roomID}`).update({ bonusTurns: bonusTurns - 1 });
-                } else {
-                    db.ref(`rooms/${roomID}`).update({ turn: player === 1 ? 2 : 1, bonusTurns: 0 });
-                }
-            }
-        }
-    }
-
-    function checkBoxes(r, c, type, player, p1Color, p2Color) {
+    function check(r, c, type, p) {
         let scored = false;
-        const check = (row, col) => {
-            if(row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+        const SIZE = 5;
+        const find = (row, col) => {
+            if(row<0 || row>=SIZE || col<0 || col>=SIZE) return;
             const hT = document.getElementById(`line-h-${row}-${col}`);
             const hB = document.getElementById(`line-h-${row+1}-${col}`);
             const vL = document.getElementById(`line-v-${row}-${col}`);
             const vR = document.getElementById(`line-v-${row}-${col+1}`);
-
-            if(hT?.classList.contains('taken') && hB?.classList.contains('taken') && 
-               vL?.classList.contains('taken') && vR?.classList.contains('taken')) {
-                const box = document.getElementById(`box-${row}-${col}`);
-                if(!box.classList.contains('filled')) {
-                    box.classList.add('filled', `p${player}`);
-                    box.innerText = player === 1 ? "🔴" : "🔵";
+            if(hT?.classList.contains('taken') && hB?.classList.contains('taken') && vL?.classList.contains('taken') && vR?.classList.contains('taken')) {
+                const b = document.getElementById(`box-${row}-${col}`);
+                if(b && !b.innerHTML) {
+                    b.innerHTML = `<span class="emoji-pop">${playersData[p].e}</span>`;
+                    b.style.background = playersData[p].c + "22";
+                    document.getElementById('soundScore').play();
                     scored = true;
-                    if(player === 1) { p1Score++; db.ref(`rooms/${roomID}/p1Score`).set(p1Score); }
-                    else { p2Score++; db.ref(`rooms/${roomID}/p2Score`).set(p2Score); }
-                    if(p1Score + p2Score === ROWS * COLS) db.ref(`rooms/${roomID}/gameActive`).set(false);
+                    if(myRole === 1) db.ref(`rooms/${roomID}/s${p}`).transaction(s => (s||0)+1);
                 }
             }
         };
-        if(type === 'h') { check(r-1, c); check(r, c); }
-        else { check(r, c-1); check(r, c); }
-        return scored;
+        if(type==='h') { find(r-1, c); find(r, c); } else { find(r, c-1); find(r, c); }
+        
+        if(myRole === 1) {
+            if(scored) {
+                // إذا سجل، يبقى الدور معه ويعاد الوقت
+                db.ref(`rooms/${roomID}/timeLeft`).set(8);
+            } else if (penaltyTurns > 1) {
+                // إذا كان تحت تأثير العقوبة، تنقص العقوبة ويبقى الدور معه
+                db.ref(`rooms/${roomID}/penalty`).set(penaltyTurns - 1);
+                db.ref(`rooms/${roomID}/timeLeft`).set(8);
+            } else {
+                // تبديل الدور الطبيعي
+                db.ref(`rooms/${roomID}`).update({ turn: p === 1 ? 2 : 1, timeLeft: 8, penalty: 0 });
+            }
+        }
     }
 
-    function updateColorsInCSS(p1Color, p2Color) {
-        let style = document.getElementById('dynamic-colors');
-        if(!style) { style = document.createElement('style'); style.id = 'dynamic-colors'; document.head.appendChild(style); }
-        style.textContent = `
-            .line.taken.p1 { background: ${colorStyles[p1Color].line}; }
-            .line.taken.p2 { background: ${colorStyles[p2Color].line}; }
-            .box.p1 { background: ${colorStyles[p1Color].bg}; }
-            .box.p2 { background: ${colorStyles[p2Color].bg}; }
-        `;
+    function copyRoom() {
+        navigator.clipboard.writeText(roomID);
+        alert("تم نسخ الكود: " + roomID);
     }
-
-    function exitGame() { location.reload(); }
-    selectColor('red');
 </script>
 </body>
 </html>
