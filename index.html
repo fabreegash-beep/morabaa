@@ -353,13 +353,28 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </body>
-<audio id="bgMusic" loop>
-    <source src="music.mp3" type="audio/mpeg">
+<audio id="background-music" loop autoplay>
+  <source src="music.mp3" type="audio/mpeg">
+  متصفحك لا يدعم عنصر الصوت.
 </audio>
 
 <script>
-document.addEventListener("click", () => {
-    document.getElementById("bgMusic").play();
-});
+  // تشغيل الموسيقى تلقائياً بعد تفاعل المستخدم (لأن المتصفحات تمنع التشغيل التلقائي)
+  window.addEventListener('load', function() {
+    let music = document.getElementById('background-music');
+    
+    // محاولة تشغيل الموسيقى
+    music.play().catch(error => {
+      console.log("المتصفح يمنع التشغيل التلقائي. سيتم التشغيل عند أول نقرة.");
+      
+      // تشغيل الموسيقى عند أول نقرة من المستخدم على الصفحة
+      document.body.addEventListener('click', function() {
+        music.play();
+      }, { once: true });
+    });
+    
+    // ضبط مستوى الصوت (اختياري - 0.5 = نصف الصوت)
+    music.volume = 0.5;
+  });
 </script>
 </html>
