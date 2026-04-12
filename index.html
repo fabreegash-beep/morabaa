@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dots & Boxes Elite 🏆</title>
+    <title>Dots & Boxes Pro 🏆</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     
@@ -13,141 +13,139 @@
             --pink: #ff85a2;
             --blue: #38bdf8;
             --accent: #6366f1;
-            --surface: #1e293b;
+            --player-color: transparent;
         }
 
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif; 
             background: var(--dark-bg);
-            background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
             min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center;
             color: white; overflow: hidden;
         }
 
-        /* Lobby Style */
         #lobby { 
-            background: rgba(30, 41, 59, 0.7); padding: 40px; border-radius: 30px; 
-            backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1);
-            text-align: center; width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 30px; 
+            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+            text-align: center; width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
         .input-box { 
             background: #0f172a; border: 2px solid #334155; border-radius: 15px;
             padding: 15px; color: white; width: 100%; box-sizing: border-box;
-            font-size: 1.2rem; text-align: center; margin-bottom: 15px;
+            font-size: 1.5rem; text-align: center; margin-bottom: 20px; outline: none;
         }
 
-        .color-palette { display: flex; justify-content: center; gap: 8px; margin: 15px 0; }
+        .color-palette { display: flex; justify-content: center; gap: 10px; margin: 15px 0; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 20px; }
         .color-dot { 
-            width: 35px; height: 35px; border-radius: 10px; cursor: pointer; 
-            border: 2px solid transparent; transition: 0.3s; display: flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px; border-radius: 12px; cursor: pointer; 
+            border: 2px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center;
         }
-        .color-dot.selected { border-color: white; transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .color-dot.selected { border-color: white; transform: scale(1.1); }
 
-        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1rem; }
-        .btn-primary { background: var(--accent); color: white; margin-bottom: 10px; }
+        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1.1rem; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: white; }
         .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
 
-        /* Game UI */
-        #game-area { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 500px; }
+        #game-area { display: none; flex-direction: column; align-items: center; }
 
-        .room-info-bar {
-            background: var(--surface); padding: 8px 15px; border-radius: 50px;
-            margin-bottom: 20px; display: flex; align-items: center; gap: 15px;
-            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .room-id-tag { color: var(--blue); font-weight: bold; font-family: monospace; font-size: 1.2rem; }
-
-        .score-container { display: flex; gap: 20px; width: 100%; justify-content: center; margin-bottom: 20px; }
-        .score-card { 
-            flex: 1; background: var(--surface); padding: 15px; border-radius: 20px;
-            text-align: center; border: 2px solid transparent; transition: 0.4s;
-        }
-        .score-card.active { transform: scale(1.05); border-color: currentColor; box-shadow: 0 0 20px currentColor; }
-        .score-val { font-size: 1.8rem; font-weight: 800; display: block; }
-        .score-label { font-size: 0.8rem; opacity: 0.7; text-transform: uppercase; }
-
-        #timer { 
-            font-size: 1.2rem; background: #ef4444; width: 45px; height: 45px; 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; margin: 10px 0; border: 3px solid rgba(255,255,255,0.2);
+        #board-container {
+            padding: 10px; border-radius: 25px;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 4px solid transparent;
         }
 
-        #board { 
-            display: grid; background: rgba(255,255,255,0.03); padding: 15px; 
-            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+        #board-container.my-turn {
+            border-color: var(--player-color);
+            box-shadow: 0 0 30px var(--player-color), inset 0 0 15px var(--player-color);
+            animation: borderPulse 2s infinite;
         }
+
+        @keyframes borderPulse {
+            0% { opacity: 0.8; } 50% { opacity: 1; filter: brightness(1.2); } 100% { opacity: 0.8; }
+        }
+
+        .status-header {
+            background: rgba(30, 41, 59, 0.9); padding: 12px 20px; border-radius: 20px;
+            margin-bottom: 15px; width: 100%; display: flex; justify-content: space-between; align-items: center;
+            min-width: 350px;
+        }
+
+        #timer { font-size: 1.1rem; background: #ef4444; padding: 4px 10px; border-radius: 8px; font-weight: bold; }
+
+        .score-board { display: flex; gap: 15px; margin-bottom: 10px; }
+        .player-score { padding: 5px 15px; border-radius: 12px; border: 2px solid transparent; font-weight: bold; background: rgba(255,255,255,0.05); }
+
+        #board { display: grid; background: rgba(15, 23, 42, 0.5); padding: 15px; border-radius: 15px; }
         
-        .dot { width: 8px; height: 8px; background: #64748b; border-radius: 50%; }
-        .line { background: #334155; cursor: pointer; transition: 0.2s; border-radius: 4px; }
-        .line:hover:not(.taken) { background: #475569; }
-        .line.horizontal { height: 8px; width: 50px; }
-        .line.vertical { width: 8px; height: 50px; }
-        .line.taken { box-shadow: 0 0 12px currentColor; }
+        .dot { width: 10px; height: 10px; background: #475569; border-radius: 50%; }
+        .line { background: #1e293b; cursor: pointer; transition: 0.2s; border-radius: 5px; }
+        .line.horizontal { height: 10px; width: 50px; }
+        .line.vertical { width: 10px; height: 50px; }
+        .line.taken { box-shadow: 0 0 8px currentColor; }
 
-        .box { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
-        .emoji-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes popIn { 0% { transform: scale(0) rotate(-45deg); } 100% { transform: scale(1) rotate(0); } }
+        .box { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 
-        .waiting-overlay {
-            position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(15,23,42,0.8);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10; border-radius: 20px; backdrop-filter: blur(5px);
+        #waiting-screen {
+            background: rgba(30, 41, 59, 0.95); padding: 30px; border-radius: 25px;
+            text-align: center; border: 2px dashed var(--blue); margin-top: 20px;
         }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div id="lobby">
-        <h1 style="margin-bottom:20px; font-size: 1.8rem;">Dots & Boxes 🎮</h1>
-        <div class="color-palette" id="lobbyPalette">
+        <h1 style="margin-top:0">Dots & Boxes 🎮</h1>
+        <div class="color-palette">
             <div class="color-dot selected" style="background: var(--pink)" data-color="#ff85a2" data-emoji="💖">💖</div>
             <div class="color-dot" style="background: var(--blue)" data-color="#38bdf8" data-emoji="💪">💪</div>
             <div class="color-dot" style="background: #4ade80" data-color="#4ade80" data-emoji="🌟">🌟</div>
             <div class="color-dot" style="background: #fbbf24" data-color="#fbbf24" data-emoji="🔥">🔥</div>
             <div class="color-dot" style="background: #a855f7" data-color="#a855f7" data-emoji="🔮">🔮</div>
         </div>
-        <button class="btn btn-primary" onclick="joinRoom('create')">أنشئ غرفة وتحدى صديقك</button>
-        <div style="margin: 15px 0; opacity: 0.5; font-size: 0.9rem;">أو انضم لغرفة موجودة</div>
-        <input type="text" id="roomInput" class="input-box" placeholder="كود الغرفة">
-        <button class="btn btn-secondary" onclick="joinRoom('join')">دخول الغرفة</button>
+        <button class="btn btn-primary" onclick="joinRoom('create')">🆕 إنشاء غرفة جديدة</button>
+        <hr style="margin: 20px 0; opacity: 0.1;">
+        <input type="text" id="roomInput" class="input-box" placeholder="أدخل كود الغرفة">
+        <button class="btn btn-secondary" onclick="joinRoom('join')">🔗 انضمام سريع</button>
     </div>
 
     <div id="game-area">
-        <div class="room-info-bar">
-            <span>كود الغرفة:</span>
-            <span id="displayID" class="room-id-tag">------</span>
-            <button onclick="copyRoom()" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">📋</button>
+        <div class="score-board">
+            <div id="p1-score" class="player-score">P1: 0</div>
+            <div id="p2-score" class="player-score">P2: 0</div>
         </div>
 
-        <div class="score-container">
-            <div id="card-p1" class="score-card">
-                <span class="score-label" id="name-p1">P1</span>
-                <span id="val-p1" class="score-val">0</span>
-            </div>
-            <div id="timer">8</div>
-            <div id="card-p2" class="score-card">
-                <span class="score-label" id="name-p2">P2</span>
-                <span id="val-p2" class="score-val">0</span>
-            </div>
+        <div class="status-header">
+            <div id="turnTxt">بانتظار الخصم...</div>
+            <div id="timer">8s</div>
         </div>
 
-        <div id="board-container" style="position: relative;">
-            <div id="waiting-msg" class="waiting-overlay">
-                <div class="spinner" style="border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--blue); width: 40px; height: 40px; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <p style="margin-top: 15px;">بانتظار الخصم للبدء...</p>
-            </div>
+        <div id="board-container">
             <div id="board"></div>
+            
+            <div id="waiting-screen" class="hidden">
+                <h3>أرسل الكود لصديقك 👥</h3>
+                <div id="displayID" style="font-size: 2.5rem; color: var(--blue); margin: 15px 0; letter-spacing: 5px; font-weight: bold;">000000</div>
+                <button class="btn btn-primary" onclick="copyRoom()">📋 نسخ كود الغرفة</button>
+                <p style="opacity: 0.6; font-size: 0.9rem; margin-top: 15px;">ستبدأ اللعبة تلقائياً عند دخوله...</p>
+            </div>
+        </div>
+
+        <div class="color-palette" style="margin-top:20px;">
+            <div class="color-dot" style="background: var(--pink)" data-color="#ff85a2" data-emoji="💖"></div>
+            <div class="color-dot" style="background: var(--blue)" data-color="#38bdf8" data-emoji="💪"></div>
+            <div class="color-dot" style="background: #4ade80" data-color="#4ade80" data-emoji="🌟"></div>
+            <div class="color-dot" style="background: #fbbf24" data-color="#fbbf24" data-emoji="🔥"></div>
+            <div class="color-dot" style="background: #a855f7" data-color="#a855f7" data-emoji="🔮"></div>
         </div>
     </div>
 
-    <audio id="sndMove" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-    <audio id="sndTurn" src="https://www.soundjay.com/buttons/button-20.mp3"></audio>
-    <audio id="sndHeart" src="https://www.soundjay.com/buttons/button-37.mp3"></audio>
-    <audio id="sndGeneral" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+    <audio id="soundMove" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+    <audio id="soundScore" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
 <script>
-    // Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBjHyON3NjKz2yBxCqwgLftd2trh03HYQc",
       authDomain: "arabic-game-onlin.firebaseapp.com",
@@ -161,18 +159,19 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let roomID, myRole, currentTurn;
+    let roomID, myRole, currentTurn, penaltyTurns = 0;
     let myColor = "#ff85a2", myEmoji = "💖";
     let playersData = {};
-    let isGameStarted = false;
 
-    // UI Logic
     document.querySelectorAll('.color-dot').forEach(dot => {
         dot.addEventListener('click', () => {
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
             dot.classList.add('selected');
             myColor = dot.dataset.color;
             myEmoji = dot.dataset.emoji;
+            if(roomID && myRole) {
+                db.ref('rooms/' + roomID).update({ [`c${myRole}`]: myColor, [`e${myRole}`]: myEmoji });
+            }
         });
     });
 
@@ -181,9 +180,14 @@
             roomID = Math.floor(100000 + Math.random() * 900000).toString();
             myRole = 1;
             await db.ref('rooms/' + roomID).set({ 
-                turn: 1, p1:true, p2:false, c1:myColor, e1:myEmoji, s1:0,
-                c2:"#38bdf8", e2:"💪", s2:0, lastMove: "", timeLeft: 8 
+                turn: 1, p1:true, p2:false, 
+                c1:myColor, e1:myEmoji, s1:0,
+                c2:"#38bdf8", e2:"💪", s2:0,
+                lastMove: "", timeLeft: 8, penalty: 0
             });
+            document.getElementById('waiting-screen').classList.remove('hidden');
+            document.getElementById('board').classList.add('hidden');
+            document.getElementById('displayID').innerText = roomID;
         } else {
             roomID = document.getElementById('roomInput').value.trim();
             if(!roomID) return alert("أدخل كود الغرفة");
@@ -192,18 +196,16 @@
             myRole = 2;
             await db.ref('rooms/' + roomID).update({ p2:true, c2:myColor, e2:myEmoji });
         }
-        document.getElementById('displayID').innerText = roomID;
-        startGameUI();
+        startGame();
     }
 
-    function startGameUI() {
+    function startGame() {
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('game-area').style.display = 'flex';
-        
         const board = document.getElementById('board');
         const SIZE = 5;
-        board.style.gridTemplateColumns = `repeat(${SIZE}, 8px 50px) 8px`;
-        
+        board.style.gridTemplateColumns = `repeat(${SIZE}, 10px 50px) 10px`;
+        board.innerHTML = "";
         for (let r = 0; r <= SIZE; r++) {
             for (let c = 0; c <= SIZE; c++) {
                 const dot = document.createElement('div'); dot.className='dot'; board.appendChild(dot);
@@ -228,12 +230,12 @@
         l.className = `line ${type==='h'?'horizontal':'vertical'}`;
         l.id = `line-${type}-${r}-${c}`;
         l.onclick = () => {
-            if(currentTurn === myRole && isGameStarted && !l.classList.contains('taken')) {
+            if(currentTurn === myRole && !l.classList.contains('taken')) {
                 db.ref(`rooms/${roomID}`).update({
                     lastMove: { r, c, type, p: myRole, t: Date.now() },
                     timeLeft: 8
                 });
-                document.getElementById('sndMove').play();
+                document.getElementById('soundMove').play();
             }
         };
         container.appendChild(l);
@@ -246,7 +248,12 @@
             if(!d || !d.p2) return;
             let newTime = d.timeLeft - 1;
             if(newTime <= 0) {
-                db.ref(`rooms/${roomID}`).update({ turn: d.turn === 1 ? 2 : 1, timeLeft: 8 });
+                // تفعيل العقوبة (الدورين): تعيين دور الخصم وتحديد العقوبة بـ 2
+                db.ref(`rooms/${roomID}`).update({ 
+                    turn: d.turn === 1 ? 2 : 1, 
+                    timeLeft: 8,
+                    penalty: 2 
+                });
             } else {
                 db.ref(`rooms/${roomID}/timeLeft`).set(newTime);
             }
@@ -254,127 +261,98 @@
     }
 
     function listen() {
-        let prevTurn = 0;
         db.ref(`rooms/${roomID}`).on('value', snap => {
             const d = snap.val();
             if(!d) return;
-
-            // التحقق من بدء اللعبة
-            if(d.p1 && d.p2) {
-                isGameStarted = true;
-                document.getElementById('waiting-msg').style.display = 'none';
-            }
-
-            // تحديث الدور والاصوات
-            if(d.turn !== prevTurn) {
-                if(d.turn === myRole && isGameStarted) document.getElementById('sndTurn').play();
-                prevTurn = d.turn;
-            }
             currentTurn = d.turn;
-
-            // تحديث بطاقات النقاط
+            penaltyTurns = d.penalty || 0;
             playersData = { 1: {c: d.c1, e: d.e1, s: d.s1}, 2: {c: d.c2, e: d.e2, s: d.s2} };
-            
-            updateScoreCard(1, d.s1, d.c1, d.e1, d.turn === 1);
-            updateScoreCard(2, d.s2, d.c2, d.e2, d.turn === 2);
 
-            document.getElementById('timer').innerText = d.timeLeft;
+            if(d.p2) {
+                document.getElementById('waiting-screen').classList.add('hidden');
+                document.getElementById('board').classList.remove('hidden');
+            }
+
+            const container = document.getElementById('board-container');
+            if(currentTurn === myRole && d.p2) {
+                document.documentElement.style.setProperty('--player-color', myColor);
+                container.classList.add('my-turn');
+            } else {
+                container.classList.remove('my-turn');
+            }
+
+            const p1Sc = document.getElementById('p1-score');
+            const p2Sc = document.getElementById('p2-score');
+            p1Sc.innerHTML = `${d.e1} P1: ${d.s1}`;
+            p1Sc.style.borderColor = (currentTurn === 1) ? d.c1 : 'transparent';
+            p1Sc.style.color = d.c1;
+            p2Sc.innerHTML = `${d.e2} P2: ${d.s2}`;
+            p2Sc.style.borderColor = (currentTurn === 2) ? d.c2 : 'transparent';
+            p2Sc.style.color = d.c2;
+
+            document.getElementById('timer').innerText = d.timeLeft + "s";
 
             if(d.lastMove) {
                 const m = d.lastMove;
                 const line = document.getElementById(`line-${m.type}-${m.r}-${m.c}`);
-                if(!line.classList.contains('taken')) {
+                if(line && !line.classList.contains('taken')) {
                     line.style.color = playersData[m.p].c;
                     line.style.background = 'currentColor';
                     line.classList.add('taken');
-                    line.setAttribute('data-owner', m.p);
-                    checkScoring(m.r, m.c, m.type, m.p);
+                    check(m.r, m.c, m.type, m.p);
                 }
+            }
+
+            const txt = document.getElementById('turnTxt');
+            if(!d.p2) txt.innerText = "⏳ بانتظار الخصم...";
+            else {
+                txt.innerText = (currentTurn === myRole) ? "🟢 دورك الآن" : "🔴 دور الخصم";
+                txt.style.color = playersData[currentTurn].c;
             }
         });
     }
 
-    function updateScoreCard(pNum, score, color, emoji, isActive) {
-        const card = document.getElementById(`card-p${pNum}`);
-        const val = document.getElementById(`val-p${pNum}`);
-        const name = document.getElementById(`name-p${pNum}`);
-        
-        val.innerText = score;
-        name.innerText = `${emoji} Player ${pNum}`;
-        card.style.color = color;
-        
-        if(isActive && isGameStarted) card.classList.add('active');
-        else card.classList.remove('active');
-    }
-
-    function checkScoring(r, c, type, p) {
+    function check(r, c, type, p) {
         let scored = false;
         const SIZE = 5;
         const find = (row, col) => {
             if(row<0 || row>=SIZE || col<0 || col>=SIZE) return;
-            const lines = [
-                document.getElementById(`line-h-${row}-${col}`),
-                document.getElementById(`line-h-${row+1}-${col}`),
-                document.getElementById(`line-v-${row}-${col}`),
-                document.getElementById(`line-v-${row}-${col+1}`)
-            ];
-
-            if(lines.every(l => l.classList.contains('taken'))) {
+            const hT = document.getElementById(`line-h-${row}-${col}`);
+            const hB = document.getElementById(`line-h-${row+1}-${col}`);
+            const vL = document.getElementById(`line-v-${row}-${col}`);
+            const vR = document.getElementById(`line-v-${row}-${col+1}`);
+            if(hT?.classList.contains('taken') && hB?.classList.contains('taken') && vL?.classList.contains('taken') && vR?.classList.contains('taken')) {
                 const b = document.getElementById(`box-${row}-${col}`);
-                if(!b.innerHTML) {
-                    const e = playersData[p].e;
-                    b.innerHTML = `<span class="emoji-pop">${e}</span>`;
-                    b.style.background = playersData[p].c + "15";
-                    
-                    // تشغيل صوت خاص بالقلب أو صوت عام
-                    if(e === "💖") document.getElementById('sndHeart').play();
-                    else document.getElementById('sndGeneral').play();
-
+                if(b && !b.innerHTML) {
+                    b.innerHTML = `<span class="emoji-pop">${playersData[p].e}</span>`;
+                    b.style.background = playersData[p].c + "22";
+                    document.getElementById('soundScore').play();
                     scored = true;
                     if(myRole === 1) db.ref(`rooms/${roomID}/s${p}`).transaction(s => (s||0)+1);
                 }
             }
         };
-
         if(type==='h') { find(r-1, c); find(r, c); } else { find(r, c-1); find(r, c); }
-
-        if(myRole === 1 && !scored) {
-            db.ref(`rooms/${roomID}`).update({ turn: p === 1 ? 2 : 1, timeLeft: 8 });
+        
+        if(myRole === 1) {
+            if(scored) {
+                // إذا سجل، يبقى الدور معه ويعاد الوقت
+                db.ref(`rooms/${roomID}/timeLeft`).set(8);
+            } else if (penaltyTurns > 1) {
+                // إذا كان تحت تأثير العقوبة، تنقص العقوبة ويبقى الدور معه
+                db.ref(`rooms/${roomID}/penalty`).set(penaltyTurns - 1);
+                db.ref(`rooms/${roomID}/timeLeft`).set(8);
+            } else {
+                // تبديل الدور الطبيعي
+                db.ref(`rooms/${roomID}`).update({ turn: p === 1 ? 2 : 1, timeLeft: 8, penalty: 0 });
+            }
         }
     }
 
     function copyRoom() {
         navigator.clipboard.writeText(roomID);
-        alert("تم نسخ الكود! أرسله لصديقك الآن.");
+        alert("تم نسخ الكود: " + roomID);
     }
 </script>
-
-<style>
-    @keyframes spin { to { transform: rotate(360deg); } }
-</style>
 </body>
-<audio id="background-music" loop autoplay>
-  <source src="music.mp3" type="audio/mpeg">
-  متصفحك لا يدعم عنصر الصوت.
-</audio>
-
-<script>
-  // تشغيل الموسيقى تلقائياً بعد تفاعل المستخدم (لأن المتصفحات تمنع التشغيل التلقائي)
-  window.addEventListener('load', function() {
-    let music = document.getElementById('background-music');
-    
-    // محاولة تشغيل الموسيقى
-    music.play().catch(error => {
-      console.log("المتصفح يمنع التشغيل التلقائي. سيتم التشغيل عند أول نقرة.");
-      
-      // تشغيل الموسيقى عند أول نقرة من المستخدم على الصفحة
-      document.body.addEventListener('click', function() {
-        music.play();
-      }, { once: true });
-    });
-    
-    // ضبط مستوى الصوت (اختياري - 0.5 = نصف الصوت)
-    music.volume = 0.5;
-  });
-</script>
 </html>
